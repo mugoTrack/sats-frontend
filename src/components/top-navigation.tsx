@@ -14,6 +14,9 @@ import { getSessionData, type SessionData } from "@/lib/auth-tokens";
 import { canAccessPath } from "@/lib/rbac";
 import { PageErrorBoundary } from "@/components/page-error-boundary";
 import { useSatsStore } from "@/store/sats-store";
+import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
+import { useUIStore } from "@/store/useUIStore";
+import { OrganizationLogo } from "@/components/common/OrganizationLogo";
 
 interface TopNavigationProps {
   children: ReactNode;
@@ -29,6 +32,9 @@ function getModuleInitials(label: string) {
 }
 
 export function TopNavigation({ children }: TopNavigationProps) {
+  // Fetch and cache organization branding (colors, font, logo) on mount
+  useOrganizationBranding();
+
   const pathname = usePathname();
   const currentTier = useSatsStore((state) => state.currentTier);
   const currentOrganizationId = useSatsStore(
@@ -41,6 +47,8 @@ export function TopNavigation({ children }: TopNavigationProps) {
   const setCurrentOrganizationId = useSatsStore(
     (state) => state.setCurrentOrganizationId,
   );
+  const systemThemeColors = useUIStore((state) => state.systemThemeColors);
+  const branding = useUIStore((state) => state.branding);
   const [hasHydrated, setHasHydrated] = useState(false);
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const currentPage = getNavigationItem(pathname);
@@ -90,12 +98,17 @@ export function TopNavigation({ children }: TopNavigationProps) {
       <aside className="hidden w-[332px] flex-none border-r border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] lg:flex lg:h-screen lg:sticky lg:top-0">
         <div className="flex h-full w-full flex-col gap-6 px-6 py-7">
           <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.18)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.34em] text-[var(--color-sand)]">
-              SATS Platform
-            </p>
-            <h1 className="mt-3 text-2xl font-semibold tracking-tight text-white">
-              Multi-Organization System
-            </h1>
+            <div className="flex items-center gap-3">
+              <OrganizationLogo maxHeight={40} className="max-h-10" />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.34em] text-[var(--color-sand)]">
+                  SATS Platform
+                </p>
+                <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">
+                  Multi-Organization System
+                </h1>
+              </div>
+            </div>
             <p className="mt-3 text-sm leading-7 text-[var(--color-mist)]">
               ERP-style application shell for wildlife operations, tenant
               governance, and system administration.
@@ -192,7 +205,14 @@ export function TopNavigation({ children }: TopNavigationProps) {
       </aside>
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(4,16,24,0.82)] backdrop-blur-xl">
+        <header
+          className="sticky top-0 z-30 border-b border-white/10 backdrop-blur-xl"
+          style={{
+            backgroundColor: systemThemeColors.primary
+              ? `color-mix(in srgb, ${systemThemeColors.primary} 82%, transparent)`
+              : "rgba(4,16,24,0.82)",
+          }}
+        >
           <div className="flex flex-col gap-4 px-4 py-4 sm:px-5 lg:px-6 xl:px-7">
             <nav className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
               {visibleNavigation.map((item) => {
@@ -216,7 +236,12 @@ export function TopNavigation({ children }: TopNavigationProps) {
 
             <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
               <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-sand)]">
+                <p
+                  className="text-xs font-semibold uppercase tracking-[0.3em]"
+                  style={{
+                    color: systemThemeColors.accent || "var(--color-sand)",
+                  }}
+                >
                   Operations bar
                 </p>
                 <h2 className="mt-2 truncate text-2xl font-semibold text-white">
@@ -277,7 +302,29 @@ export function TopNavigation({ children }: TopNavigationProps) {
                       ))}
                     </select>
                   </label>
-                  <button className="rounded-full border border-[var(--color-sand)]/35 bg-[var(--color-sand)]/15 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[var(--color-sand)]/22">
+                  <button
+                    className="rounded-full border px-4 py-3 text-sm font-medium text-white transition-colors"
+                    style={{
+                      borderColor:
+                        `${systemThemeColors.accent}59` ||
+                        "var(--color-sand)/35",
+                      backgroundColor:
+                        `${systemThemeColors.accent}26` ||
+                        "var(--color-sand)/15",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor =
+                        systemThemeColors.accent
+                          ? `${systemThemeColors.accent}38`
+                          : "";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor =
+                        systemThemeColors.accent
+                          ? `${systemThemeColors.accent}26`
+                          : "";
+                    }}
+                  >
                     New Record
                   </button>
                 </div>

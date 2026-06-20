@@ -10,6 +10,8 @@ import {
   setSessionPermissions,
 } from "@/lib/auth-tokens";
 import { roleService } from "@/lib/users/role-service";
+import { organizationBrandingService } from "@/lib/organizations/organization-branding-service";
+import { useUIStore, type BrandingCache } from "@/store/useUIStore";
 import type { AppRole, AppUser } from "@/types";
 
 interface AuthState {
@@ -58,6 +60,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         : new Error("Unable to load permissions for the signed-in user.");
     }
 
+    const organizationId =
+      response.user.organization_id ??
+      (response.user.is_system_admin ? "platform-authority" : "");
+
     set({
       isAuthenticated: true,
       user: {
@@ -65,11 +71,46 @@ export const useAuthStore = create<AuthState>((set) => ({
         name: response.user.name,
         email: response.user.email,
         role: resolveRole(response.user.is_system_admin),
-        organizationId:
-          response.user.organization_id ??
-          (response.user.is_system_admin ? "platform-authority" : ""),
+        organizationId,
       },
     });
+
+    // Fire-and-forget: pre-fetch organization branding immediately after login
+    // so it's available on auth pages (login, forgot-password, reset-password)
+    // without waiting for the dashboard to load.
+    Promise.all([
+      organizationBrandingService.getBranding(organizationId),
+      organizationBrandingService.getLogoUrl(organizationId).catch(() => null),
+    ])
+      .then(([branding, logoBlobUrl]) => {
+        const brandingCache: BrandingCache = {
+          brandingOrgId: organizationId,
+          brandingPrimaryColor: branding.primaryColor || "",
+          brandingSecondaryColor: branding.secondaryColor || "",
+          brandingAccentColor: branding.accentColor || "",
+          brandingFontFamily: branding.fontFamily || "",
+          brandingLogoUrl: branding.logoUrl || null,
+        };
+        useUIStore.getState().setBrandingCache(brandingCache);
+        if (logoBlobUrl) {
+          useUIStore.getState().setBrandingLogoBlobUrl(logoBlobUrl);
+        }
+
+        if (
+          branding.primaryColor ||
+          branding.secondaryColor ||
+          branding.accentColor
+        ) {
+          useUIStore.getState().setSystemThemeColors({
+            primary: branding.primaryColor || "#0f4c5c",
+            secondary: branding.secondaryColor || "#f7f3e8",
+            accent: branding.accentColor || "#d17a22",
+          });
+        }
+      })
+      .catch(() => {
+        // Branding may not be configured for this org — that's okay
+      });
   },
   logout: () => {
     clearAuthTokens();

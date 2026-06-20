@@ -92,6 +92,14 @@ export function UsersAllUsersPageView() {
   const [deleteError, setDeleteError] = useState("");
   const [deleteSuccess, setDeleteSuccess] = useState("");
 
+  const organizationNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const org of organizations) {
+      map.set(org.id, org.name);
+    }
+    return map;
+  }, [organizations]);
+
   const loadUsers = useCallback(async () => {
     const response = await userService.listUsers(1, 100);
     return response.items;
@@ -109,12 +117,11 @@ export function UsersAllUsersPageView() {
 
         if (isMounted) {
           setRows(items);
-          setOrganizations(
-            organizationItems.map((item) => ({
-              id: item.id,
-              name: item.organization_name,
-            })),
-          );
+          const orgList = organizationItems.map((item) => ({
+            id: item.id,
+            name: item.organization_name,
+          }));
+          setOrganizations(orgList);
         }
       } catch (requestError) {
         if (isMounted) {
@@ -452,7 +459,12 @@ export function UsersAllUsersPageView() {
             },
             { header: "Phone", render: (row) => row.phone || "-" },
             { header: "Status", render: (row) => row.status },
-            { header: "Organization", render: (row) => row.organizationId },
+            {
+              header: "Organization",
+              render: (row) =>
+                organizationNameMap.get(row.organizationId) ??
+                row.organizationId,
+            },
             {
               header: "System admin",
               render: (row) => (row.isSystemAdmin ? "Yes" : "No"),

@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { dashboardModules } from "@/lib/dashboard-config";
+import { useUIStore } from "@/store/useUIStore";
 import { cn } from "@/lib/utils";
 
 interface SearchEntry {
@@ -48,6 +49,7 @@ export function Topbar({
   const router = useRouter();
   const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const systemThemeColors = useUIStore((state) => state.systemThemeColors);
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -176,7 +178,14 @@ export function Topbar({
   };
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--color-shell-border)] bg-[rgba(4,16,24,0.76)] backdrop-blur-xl">
+    <header
+      className="sticky top-0 z-30 border-b border-[var(--color-shell-border)] backdrop-blur-xl"
+      style={{
+        backgroundColor: systemThemeColors.primary
+          ? `color-mix(in srgb, ${systemThemeColors.primary} 76%, transparent)`
+          : "rgba(4,16,24,0.76)",
+      }}
+    >
       <div className="flex flex-col gap-5 px-4 py-4 sm:px-5 lg:px-6 xl:px-7">
         <div
           ref={containerRef}
