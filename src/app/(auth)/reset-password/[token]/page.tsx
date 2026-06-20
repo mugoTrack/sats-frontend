@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { resetPasswordWithApi } from "@/lib/api/auth-client";
+import { OrganizationLogo } from "@/components/common/OrganizationLogo";
 
 interface ResetPasswordPageProps {
   params: {
@@ -24,6 +25,9 @@ export default function ResetPasswordPage({ params }: ResetPasswordPageProps) {
   return (
     <main className="flex min-h-screen items-center justify-center px-5 py-10 sm:px-8">
       <section className="w-full max-w-xl p-2 sm:p-4 lg:p-6">
+        <div className="mb-6 flex justify-center">
+          <OrganizationLogo maxHeight={64} className="max-h-16" />
+        </div>
         <h2 className="text-3xl font-semibold text-[var(--color-ice)]">
           Reset password
         </h2>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
+import { OrganizationLogo } from "@/components/common/OrganizationLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,6 +18,9 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center px-5 py-10 sm:px-8">
       <section className="w-full max-w-xl p-2 sm:p-4 lg:p-6">
+        <div className="mb-6 flex justify-center">
+          <OrganizationLogo maxHeight={64} className="max-h-16" />
+        </div>
         <h2 className="text-3xl font-semibold text-[var(--color-ice)]">
           Sign in
         </h2>
